@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>登入 - watsonx Assistant for Z</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'IBM Plex Sans', Arial, sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .login-card {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    .login-card h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: #161616;
+    }
+    .login-card p {
+      color: #525252;
+      margin-bottom: 1.5rem;
+      font-size: 0.875rem;
+    }
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #393939;
+      margin-bottom: 0.25rem;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #8d8d8d;
+      border-radius: 4px;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+    input:focus {
+      outline: 2px solid #0f62fe;
+      border-color: #0f62fe;
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #0f62fe;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:hover { background-color: #0353e9; }
+    .error {
+      background-color: #fff1f1;
+      border-left: 3px solid #da1e28;
+      color: #da1e28;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <h1>watsonx Assistant for Z</h1>
+    <p>請登入以使用聊天助理</p>
+    <div class="error" id="error-msg">帳號或密碼錯誤，請重試。</div>
+    <form action="/api/login" method="POST">
+      <label for="username">帳號</label>
+      <input type="text" id="username" name="username" required autocomplete="username" />
+      <label for="password">密碼</label>
+      <input type="password" id="password" name="password" required autocomplete="current-password" />
+      <button type="submit">登入</button>
+    </form>
+  </div>
+  <script>
+    if (window.location.search.includes('error=1')) {
+      document.getElementById('error-msg').style.display = 'block';
+    }
+  </script>
+</body>
+</html>

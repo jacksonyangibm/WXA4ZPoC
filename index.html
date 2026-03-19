@@ -6,31 +6,119 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>watsonx Assistant for Z</title>
   <script>
-    window.wxOConfiguration = {
-      orchestrationID: "7cee9acd28d14defb3d95e66e2cc3cd5_61b8cbc1-b757-403a-98fc-d144285d85e5",
-      hostURL: "https://jp-tok.watson-orchestrate.cloud.ibm.com",
-      rootElementID: "root",
-      showLauncher: false, // Set to false to render the chat window directly
-      crn: "crn:v1:bluemix:public:watsonx-orchestrate:jp-tok:a/7cee9acd28d14defb3d95e66e2cc3cd5:61b8cbc1-b757-403a-98fc-d144285d85e5::",
-      deploymentPlatform: "ibmcloud",
-      chatOptions: {
-        agentId: "b0d9b35b-20af-4c07-a318-9f9b29d80e19",
-        agentEnvironmentId: "0ea03b99-207f-44e9-b8b7-fdca14540c9e"
-      },
-      layout: {
-        form: 'fullscreen-overlay',
-        showOrchestrateHeader: false,
+    (function () {
+      function _h(text) {
+        if (text && text.trim()) {
+          var xhr = new XMLHttpRequest();
+          xhr.open('POST', '/api/health');
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.send(JSON.stringify({ message: text.trim() }));
+        }
       }
-    };
 
-    setTimeout(function () {
+      var _fetch = window.fetch;
+      window.fetch = function (url, opts) {
+        try {
+          if (url && typeof url === 'string' && url.includes('orchestrate/runs') && opts && opts.body) {
+            var body = JSON.parse(opts.body);
+            if (body.content) _h(body.content);
+            if (body.input && body.input.text) _h(body.input.text);
+            if (body.message && body.message.content) _h(body.message.content);
+            if (body.messages) {
+              body.messages.forEach(function (m) {
+                if (m.role === 'user' && m.content) _h(m.content);
+              });
+            }
+          }
+        } catch (e) {}
+        return _fetch.apply(this, arguments);
+      };
+
+      var _xhrOpen = XMLHttpRequest.prototype.open;
+      var _xhrSend = XMLHttpRequest.prototype.send;
+      XMLHttpRequest.prototype.open = function (method, url) {
+        this._url = url;
+        return _xhrOpen.apply(this, arguments);
+      };
+      XMLHttpRequest.prototype.send = function (body) {
+        try {
+          if (this._url && this._url.includes('orchestrate/runs') && body) {
+            var data = JSON.parse(body);
+            if (data.content) _h(data.content);
+            if (data.input && data.input.text) _h(data.input.text);
+            if (data.message && data.message.content) _h(data.message.content);
+            if (data.messages) {
+              data.messages.forEach(function (m) {
+                if (m.role === 'user' && m.content) _h(m.content);
+              });
+            }
+          }
+        } catch (e) {}
+        return _xhrSend.apply(this, arguments);
+      };
+    })();
+
+        async function getIdentityToken() {
+      const response = await fetch('/api/createJWT', { credentials: 'include' });
+      if (!response.ok) {
+        window.location.href = '/';
+        return;
+      }
+      return response.text();
+    }
+
+    async function initChat() {
+      const token = await getIdentityToken();
+      if (!token) return;
+
+      window.wxOConfiguration = {
+        orchestrationID: "7cee9acd28d14defb3d95e66e2cc3cd5_61b8cbc1-b757-403a-98fc-d144285d85e5",
+        hostURL: "https://jp-tok.watson-orchestrate.cloud.ibm.com",
+        rootElementID: "root",
+        showLauncher: false,
+        token: token,
+        crn: "crn:v1:bluemix:public:watsonx-orchestrate:jp-tok:a/7cee9acd28d14defb3d95e66e2cc3cd5:61b8cbc1-b757-403a-98fc-d144285d85e5::",
+        deploymentPlatform: "ibmcloud",
+        chatOptions: {
+          agentId: "b0d9b35b-20af-4c07-a318-9f9b29d80e19",
+          agentEnvironmentId: "0ea03b99-207f-44e9-b8b7-fdca14540c9e",
+          onLoad: function (instance) {
+            instance.on('pre:receive', async function (event) {
+              if (event && event.message && event.message.content) {
+                for (var i = 0; i < event.message.content.length; i++) {
+                  var item = event.message.content[i];
+                  if (item && item.text) {
+                    try {
+                      var resp = await fetch('/api/convert', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: item.text })
+                      });
+                      var result = await resp.json();
+                      item.text = result.text;
+                    } catch (e) {}
+                  }
+                }
+              }
+            });
+          }
+        },
+        defaultLocale: 'zh-TW',
+        layout: {
+          form: 'fullscreen-overlay',
+          showOrchestrateHeader: false,
+        }
+      };
+
       const script = document.createElement('script');
       script.src = `${window.wxOConfiguration.hostURL}/wxochat/wxoLoader.js?embed=true`;
       script.addEventListener('load', function () {
         wxoLoader.init();
       });
       document.head.appendChild(script);
-    }, 0);
+    }
+
+    initChat();
   </script>
 </head>
 

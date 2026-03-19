@@ -1,0 +1,15 @@
+{
+  "name": "wxa4zpoc",
+  "version": "1.0.0",
+  "description": "watsonx Assistant for Z - PoC with JWT security",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "express-session": "^1.18.0",
+    "jsonwebtoken": "^9.0.2",
+    "opencc-js": "^1.0.5"
+  }
+}
