@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-5.4-mini',
         messages: [
           { role: 'system', content: `You are a professional translator. Translate the following text from ${fromName} to ${toName}. Output only the translated text, nothing else.` },
           { role: 'user', content: text }
