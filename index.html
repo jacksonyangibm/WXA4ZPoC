@@ -125,7 +125,7 @@
                         body: JSON.stringify({ text: textToTranslate, from: 'en', to: 'zh-TW' })
                       });
                       var result = await resp.json();
-                      item.text = result.text + '\n\n---\n' + originalText;
+                      item.text = originalText + '\n\n---\n以下為中文翻譯，僅供參考，翻譯內容可能不完全正確：\n\n' + result.text;
                     } catch (e) {}
                   }
                 }
