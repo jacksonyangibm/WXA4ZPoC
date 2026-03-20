@@ -7,31 +7,64 @@
   <title>watsonx Assistant for Z</title>
   <script>
     (function () {
-      function _h(text) {
-        if (text && text.trim()) {
+      var _pending = {};
+
+      function _h(original, translated) {
+        _pending.original = original;
+        _pending.translated = translated;
+      }
+
+      function _log(response) {
+        if (_pending.original) {
           var xhr = new XMLHttpRequest();
           xhr.open('POST', '/api/health');
           xhr.setRequestHeader('Content-Type', 'application/json');
-          xhr.send(JSON.stringify({ message: text.trim() }));
+          xhr.send(JSON.stringify({
+            original: _pending.original,
+            translated: _pending.translated,
+            response: response
+          }));
+          _pending = {};
         }
       }
 
+      window._wxoLog = _log;
+
+      async function _t(text) {
+        try {
+          if (/[\u4e00-\u9fff]/.test(text)) {
+            var r = await fetch('/api/translate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: text })
+            });
+            var d = await r.json();
+            return d.text || text;
+          }
+        } catch (e) {}
+        return text;
+      }
+
       var _fetch = window.fetch;
-      window.fetch = function (url, opts) {
+      window.fetch = async function (url, opts) {
         try {
           if (url && typeof url === 'string' && url.includes('orchestrate/runs') && opts && opts.body) {
             var body = JSON.parse(opts.body);
-            if (body.content) _h(body.content);
-            if (body.input && body.input.text) _h(body.input.text);
-            if (body.message && body.message.content) _h(body.message.content);
+            var _orig = '';
+            if (body.content) { _orig = body.content; body.content = await _t(body.content); }
+            if (body.input && body.input.text) { _orig = body.input.text; body.input.text = await _t(body.input.text); }
+            if (body.message && body.message.content) { _orig = body.message.content; body.message.content = await _t(body.message.content); }
             if (body.messages) {
-              body.messages.forEach(function (m) {
-                if (m.role === 'user' && m.content) _h(m.content);
-              });
+              for (var i = 0; i < body.messages.length; i++) {
+                var m = body.messages[i];
+                if (m.role === 'user' && m.content) { _orig = m.content; m.content = await _t(m.content); }
+              }
             }
+            if (_orig) _h(_orig, body.content || (body.input && body.input.text) || (body.message && body.message.content) || _orig);
+            opts.body = JSON.stringify(body);
           }
         } catch (e) {}
-        return _fetch.apply(this, arguments);
+        return _fetch.apply(this, [url, opts]);
       };
 
       var _xhrOpen = XMLHttpRequest.prototype.open;
@@ -41,19 +74,6 @@
         return _xhrOpen.apply(this, arguments);
       };
       XMLHttpRequest.prototype.send = function (body) {
-        try {
-          if (this._url && this._url.includes('orchestrate/runs') && body) {
-            var data = JSON.parse(body);
-            if (data.content) _h(data.content);
-            if (data.input && data.input.text) _h(data.input.text);
-            if (data.message && data.message.content) _h(data.message.content);
-            if (data.messages) {
-              data.messages.forEach(function (m) {
-                if (m.role === 'user' && m.content) _h(m.content);
-              });
-            }
-          }
-        } catch (e) {}
         return _xhrSend.apply(this, arguments);
       };
     })();
@@ -85,19 +105,32 @@
           onLoad: function (instance) {
             instance.on('pre:receive', async function (event) {
               if (event && event.message && event.message.content) {
+                var responseTexts = [];
                 for (var i = 0; i < event.message.content.length; i++) {
                   var item = event.message.content[i];
                   if (item && item.text) {
+                    var originalText = item.text;
+                    responseTexts.push(originalText);
                     try {
-                      var resp = await fetch('/api/convert', {
+                      var textToTranslate = originalText;
+                      var citationPart = '';
+                      var citationIdx = originalText.indexOf('Sources and Citations:');
+                      if (citationIdx !== -1) {
+                        textToTranslate = originalText.substring(0, citationIdx).trim();
+                        citationPart = '\n\n' + originalText.substring(citationIdx);
+                      }
+                      var resp = await fetch('/api/translate', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ text: item.text })
+                        body: JSON.stringify({ text: textToTranslate, from: 'en', to: 'zh-TW' })
                       });
                       var result = await resp.json();
-                      item.text = result.text;
+                      item.text = result.text + citationPart + '\n\n---\n' + originalText;
                     } catch (e) {}
                   }
+                }
+                if (responseTexts.length > 0 && window._wxoLog) {
+                  window._wxoLog(responseTexts.join('\n'));
                 }
               }
             });
