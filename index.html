@@ -104,6 +104,20 @@
           agentId: "b0d9b35b-20af-4c07-a318-9f9b29d80e19",
           agentEnvironmentId: "0ea03b99-207f-44e9-b8b7-fdca14540c9e",
           onLoad: function (instance) {
+            instance.updateCustomHeaderItems([
+              {
+                id: 'restart',
+                text: '重新對話',
+                type: 'menu-item',
+                onClick: function () { instance.restartConversation(); }
+              },
+              {
+                id: 'logout',
+                text: '登出',
+                type: 'menu-item',
+                onClick: function () { fetch('/api/logout', { credentials: 'include' }).then(function () { window.location.href = '/login.html'; }); }
+              }
+            ]);
             instance.on('pre:receive', async function (event) {
               if (event && event.message && event.message.content) {
                 var responseTexts = [];
@@ -164,32 +178,7 @@
     margin: 0;
     padding: 0;
   }
-  .logout-btn {
-    position: fixed;
-    top: 6px;
-    right: 16px;
-    z-index: 9999;
-    background: #393939;
-    color: white;
-    border: none;
-    padding: 6px 14px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    opacity: 0.7;
-  }
-  .logout-btn:hover {
-    opacity: 1;
-  }
-  @media (max-width: 768px) {
-    .logout-btn {
-      right: 50px;
-    }
-  }
 </style>
 
-<body>
-  <button class="logout-btn" onclick="fetch('/api/logout',{credentials:'include'}).then(()=>window.location.href='/login.html')">登出</button>
-</body>
 
 </html>
