@@ -125,7 +125,7 @@
                         body: JSON.stringify({ text: textToTranslate, from: 'en', to: 'zh-TW' })
                       });
                       var result = await resp.json();
-                      item.text = result.text + citationPart + '\n\n---\n' + originalText;
+                      item.text = result.text + '\n\n---\n' + originalText;
                     } catch (e) {}
                   }
                 }
