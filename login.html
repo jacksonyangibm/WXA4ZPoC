@@ -22,6 +22,18 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       width: 100%;
       max-width: 400px;
+      animation: slideUp 0.6s ease-out;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .login-card img {
+      animation: float 3s ease-in-out infinite;
     }
     .login-card h1 {
       font-size: 1.5rem;
@@ -63,7 +75,11 @@
       font-size: 1rem;
       cursor: pointer;
     }
-    button:hover { background-color: #0353e9; }
+    button {
+      transition: background-color 0.2s, transform 0.15s;
+    }
+    button:hover { background-color: #0353e9; transform: scale(1.02); }
+    button:active { transform: scale(0.98); }
     .error {
       background-color: #fff1f1;
       border-left: 3px solid #da1e28;
