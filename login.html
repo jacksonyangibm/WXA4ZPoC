@@ -9,7 +9,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'IBM Plex Sans', Arial, sans-serif;
-      background-color: #f4f4f4;
+      background: linear-gradient(135deg, #f4f4f4 0%, #e8e8e8 50%, #dde1e6 100%);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -19,7 +19,8 @@
       background: white;
       padding: 2.5rem;
       border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-top: 4px solid #0f62fe;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
       width: 100%;
       max-width: 400px;
       animation: slideUp 0.6s ease-out;
@@ -41,6 +42,20 @@
       color: #161616;
       text-align: center;
     }
+    .typewriter {
+      text-align: center;
+      color: #525252;
+      margin-bottom: 1.5rem;
+      font-size: 0.875rem;
+      min-height: 1.4em;
+    }
+    .typewriter span {
+      border-right: 2px solid #0f62fe;
+      animation: blink 0.7s step-end infinite;
+    }
+    @keyframes blink {
+      50% { border-color: transparent; }
+    }
     .login-card p {
       color: #525252;
       margin-bottom: 1.5rem;
@@ -60,6 +75,7 @@
       border-radius: 4px;
       font-size: 1rem;
       margin-bottom: 1rem;
+      transition: border-color 0.2s;
     }
     input:focus {
       outline: 2px solid #0f62fe;
@@ -74,8 +90,6 @@
       border-radius: 4px;
       font-size: 1rem;
       cursor: pointer;
-    }
-    button {
       transition: background-color 0.2s, transform 0.15s;
     }
     button:hover { background-color: #0353e9; transform: scale(1.02); }
@@ -95,7 +109,7 @@
   <div class="login-card">
     <img src="/icon/watsonx Assistant for Z.png" alt="watsonx Assistant for Z" style="width: 80px; margin-bottom: 1rem; display: block; margin-left: auto; margin-right: auto;" />
     <h1>watsonx Assistant for Z</h1>
-    <p style="text-align: center;">請登入以使用聊天助理</p>
+    <div class="typewriter"><span id="typewriter-text"></span></div>
     <p style="color: #525252; font-size: 0.8rem; margin-bottom: 1.5rem;">此為 PoC 展示環境，回應速度不代表正式環境的實際效能表現。</p>
     <div class="error" id="error-msg">帳號或密碼錯誤，請重試。</div>
     <form action="/api/login" method="POST">
@@ -110,6 +124,20 @@
     if (window.location.search.includes('error=1')) {
       document.getElementById('error-msg').style.display = 'block';
     }
+
+    (function () {
+      var text = '請登入以使用聊天助理';
+      var el = document.getElementById('typewriter-text');
+      var i = 0;
+      function type() {
+        if (i <= text.length) {
+          el.textContent = text.substring(0, i);
+          i++;
+          setTimeout(type, 80);
+        }
+      }
+      setTimeout(type, 600);
+    })();
   </script>
 </body>
 </html>
