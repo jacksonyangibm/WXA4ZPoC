@@ -1,13 +1,12 @@
-const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwqMVU_Cqw9c0pVccph_wfGD7rJYmX-K4brJGDKnusQZvSJnFV3gM4WlqUL2IYJK8doFw/exec';
+const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxqmUHHvAmYxYUFmR-jR911NhPRarmVOwLNwG4trX8N7TowaeiPonRuycnJN0Gycn6cfw/exec';
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { message } = req.body || {};
+  const { original, translated, response } = req.body || {};
 
-  // Get actual username from session cookie
   let user = 'unknown';
   const cookie = req.headers.cookie || '';
   const match = cookie.match(/session=([^;]+)/);
@@ -17,12 +16,29 @@ module.exports = async (req, res) => {
     } catch (e) {}
   }
 
+  const payload = JSON.stringify({ user, original, translated, response });
+
   try {
-    await fetch(GOOGLE_SHEET_URL, {
+    // First request - get redirect URL
+    const r1 = await fetch(GOOGLE_SHEET_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user, message }),
+      body: payload,
+      redirect: 'manual',
     });
+
+    // Follow redirect with POST
+    if (r1.status >= 300 && r1.status < 400) {
+      const redirectUrl = r1.headers.get('location');
+      if (redirectUrl) {
+        await fetch(redirectUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+        });
+      }
+    }
+
     res.status(200).json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to log' });
