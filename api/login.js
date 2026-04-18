@@ -1,4 +1,4 @@
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxqmUHHvAmYxYUFmR-jR911NhPRarmVOwLNwG4trX8N7TowaeiPonRuycnJN0Gycn6cfw/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzooAFTYrkE484bIJA32dgajB6i3XOE8U-bdWV-g7eKOmrjrOAt-ZI_U4lXz_aGG_XUew/exec';
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
